@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aavaaz - Voice Memory Companion</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <h1 class="logo">Aavaaz</h1>
+      <div class="nav-links">
+        <a href="/index.html">Home</a>
+        <a href="/dashboard.html" id="dash-link" style="display:none">Dashboard</a>
+        <a href="/privacy.html">Privacy</a>
+        <button id="logout-btn" style="display:none">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <section id="home" class="hero">
+    <div class="hero-content">
+      <h1>Preserve the Comfort of a Loved One's Voice</h1>
+      <p>For families and seniors in premium care homes.</p>
+      <button id="start-btn" class="btn btn-primary">Start Free Pilot</button>
+    </div>
+  </section>
+
+  <section id="auth" class="auth-section" style="display:none">
+    <div class="auth-container">
+      <h2>Login / Signup</h2>
+      <input id="email" type="email" placeholder="Email" class="input" />
+      <input id="password" type="password" placeholder="Password" class="input" />
+      <button id="login-btn" class="btn btn-secondary">Login</button>
+      <button id="signup-btn" class="btn btn-secondary">Signup</button>
+      <p id="auth-message" class="message"></p>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
