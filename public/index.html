@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="nav-container">
       <h1 class="logo">Aavaaz</h1>
@@ -20,6 +21,7 @@
     </div>
   </nav>
 
+  <!-- Hero Section -->
   <section id="home" class="hero">
     <div class="hero-content">
       <h1>Preserve the Comfort of a Loved One's Voice</h1>
@@ -28,6 +30,7 @@
     </div>
   </section>
 
+  <!-- Authentication Section -->
   <section id="auth" class="auth-section" style="display:none">
     <div class="auth-container">
       <h2>Login / Signup</h2>
@@ -36,6 +39,16 @@
       <button id="login-btn" class="btn btn-secondary">Login</button>
       <button id="signup-btn" class="btn btn-secondary">Signup</button>
       <p id="auth-message" class="message"></p>
+      <button id="close-auth-btn" class="btn btn-secondary">Close</button>
+    </div>
+  </section>
+
+  <!-- Hidden Dashboard Section -->
+  <section id="dashboard" class="dashboard" style="display:none">
+    <div class="dashboard-container">
+      <h1>Welcome to Your Voice Dashboard</h1>
+      <p>Your voice memories are being preserved...</p>
+      <a href="/dashboard.html" class="btn btn-primary">Go to Full Dashboard</a>
     </div>
   </section>
 
