@@ -31,8 +31,16 @@
   </section>
 
   <!-- Authentication Section -->
-  <section id="auth" class="auth-section" style="display:none">
-    <div class="auth-container">
+  <section id="auth" class="auth-section" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;">
+        <div class="auth-container" style="background:white; padding:40px; border-radius:10px; max-width:400px; width:90%;">
+                <h2 style="color:#333; margin-top:0; text-align:center;">Login / Signup</h2>
+                <input id="email" type="email" placeholder="Email" class="input" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:5px; box-sizing:border-box;" />
+                <input id="password" type="password" placeholder="Password" class="input" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:5px; box-sizing:border-box;" />
+                <button id="login-btn" class="btn btn-secondary" style="width:100%; padding:12px; margin:10px 0; background:#6366f1; color:white; border:none; border-radius:5px; cursor:pointer;">Login</button>
+                <button id="signup-btn" class="btn btn-secondary" style="width:100%; padding:12px; margin:10px 0; background:#6366f1; color:white; border:none; border-radius:5px; cursor:pointer;">Signup</button>
+                <p id="auth-message" class="message" style="color:#f44336; text-align:center;"></p>
+                <button id="close-auth-btn" class="btn btn-secondary" style="width:100%; padding:12px; margin:10px 0; background:#999; color:white; border:none; border-radius:5px; cursor:pointer;">Close</button>
+              </div><div class="auth-container">
       <h2>Login / Signup</h2>
       <input id="email" type="email" placeholder="Email" class="input" />
       <input id="password" type="password" placeholder="Password" class="input" />
