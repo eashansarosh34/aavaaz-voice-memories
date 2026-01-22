@@ -8,6 +8,5 @@
     "build": "echo 'No build needed for static site'"
   },
   "engines": {
-    "node": "18.x"
-  }
+"node": "20.x"  }
 }
