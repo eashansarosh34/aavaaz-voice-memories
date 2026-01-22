@@ -1,1 +1,355 @@
-<!DOCTYPE html><html><head><title>Dashboard</title></head><body><h1>Dashboard</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aavaaz - Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .header h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    .header p {
+      color: #666;
+      font-size: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .card h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-icon {
+      font-size: 28px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .form-group input[type="file"],
+    .form-group input[type="text"],
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+    .form-group input[type="file"]:focus,
+    .form-group input[type="text"]:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .audio-player {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+    }
+    .audio-player.active {
+      display: block;
+    }
+    .audio-player audio {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .file-info {
+      color: #666;
+      font-size: 12px;
+      padding: 10px;
+      background: #f0f4ff;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: none;
+    }
+    .file-info.active {
+      display: block;
+    }
+    .btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+      background: #f0f4ff;
+      color: #667eea;
+    }
+    .btn-secondary:hover {
+      background: #e0e6ff;
+    }
+    .recording-status {
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    .recording-status.active {
+      display: flex;
+    }
+    .recording-status.recording {
+      background: #ffe0e0;
+      color: #d32f2f;
+    }
+    .recording-status.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background: currentColor;
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .calendar-embed {
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 600px;
+      margin-top: 20px;
+    }
+    .calendar-embed iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .info-box {
+      background: #f0f4ff;
+      padding: 15px;
+      border-left: 4px solid #667eea;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #333;
+      line-height: 1.6;
+    }
+    .footer {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      color: #666;
+      font-size: 13px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Aavaaz Dashboard</h1>
+      <p>Manage your voice clone and schedule calls</p>
+    </div>
+
+    <div class="grid">
+      <!-- Reference Voice Section -->
+      <div class="card">
+        <h2><span class="card-icon">🎙️</span> Reference Voice</h2>
+        <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Upload or record a voice sample to clone. This will be used as your unique voice profile.</p>
+        
+        <div class="form-group">
+          <label>Upload Audio File (MP3, WAV, M4A)</label>
+          <input type="file" id="voiceFile" accept="audio/*" />
+          <div class="file-info" id="fileInfo"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Or Record Now</label>
+          <button class="btn btn-secondary" id="recordBtn">Start Recording</button>
+          <button class="btn btn-secondary" id="stopRecordBtn" style="display: none; background: #ffcdd2; color: #c62828;">Stop Recording</button>
+          <div class="recording-status" id="recordingStatus"></div>
+        </div>
+
+        <div id="audioPlayer" class="audio-player">
+          <label style="color: #333; font-weight: 600; display: block; margin-bottom: 10px;">Preview Your Voice</label>
+          <audio id="voicePreview" controls>
+            Your browser does not support the audio element.
+          </audio>
+          <div style="color: #666; font-size: 12px; margin-top: 10px;">
+            Length: <span id="duration">0:00</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="cloneVoiceBtn" style="margin-top: 20px; display: none;">Confirm & Clone Voice</button>
+      </div>
+
+      <!-- Calendar Booking Section -->
+      <div class="card">
+        <h2><span class="card-icon">📅</span> Schedule a Call</h2>
+        <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Book a time to record or discuss your voice memory project with our team.</p>
+        
+        <div class="info-box">
+          <strong>How it works:</strong><br>
+          1. Select a time that works for you<br>
+          2. Fill in your details<br>
+          3. We'll send you a confirmation<br>
+          4. Join the call at your scheduled time
+        </div>
+
+        <div class="calendar-embed">
+          <iframe src="https://cal.com/easha-srivastava" style="width:100%; height:600px; border:none; border-radius: 8px;"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Your voice data is encrypted and stored securely. We respect your privacy.</p>
+      <p>Questions? <a href="mailto:support@aavaaz.com" style="color: #667eea; text-decoration: none;">Contact support</a></p>
+    </div>
+  </div>
+
+  <script>
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let voiceBlob = null;
+
+    const recordBtn = document.getElementById('recordBtn');
+    const stopRecordBtn = document.getElementById('stopRecordBtn');
+    const voiceFile = document.getElementById('voiceFile');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const voicePreview = document.getElementById('voicePreview');
+    const fileInfo = document.getElementById('fileInfo');
+    const recordingStatus = document.getElementById('recordingStatus');
+    const cloneVoiceBtn = document.getElementById('cloneVoiceBtn');
+    const durationSpan = document.getElementById('duration');
+
+    // File upload handler
+    voiceFile.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        voiceBlob = file;
+        voicePreview.src = URL.createObjectURL(file);
+        audioPlayer.classList.add('active');
+        fileInfo.classList.add('active');
+        fileInfo.innerHTML = `✓ Uploaded: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        cloneVoiceBtn.style.display = 'block';
+      }
+    });
+
+    // Recording handler
+    recordBtn.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          voiceBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          voicePreview.src = URL.createObjectURL(voiceBlob);
+          audioPlayer.classList.add('active');
+          fileInfo.classList.add('active');
+          fileInfo.innerHTML = '✓ Recording saved successfully';
+          recordingStatus.classList.add('active', 'success');
+          recordingStatus.innerHTML = '<span class="status-dot"></span> Recording complete and ready to clone';
+          cloneVoiceBtn.style.display = 'block';
+        };
+
+        mediaRecorder.start();
+        recordBtn.style.display = 'none';
+        stopRecordBtn.style.display = 'block';
+        recordingStatus.classList.add('active', 'recording');
+        recordingStatus.innerHTML = '<span class="status-dot"></span> Recording in progress...';
+      } catch (error) {
+        alert('Microphone access is required to record. Please allow access.');
+      }
+    });
+
+    stopRecordBtn.addEventListener('click', () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      }
+      recordBtn.style.display = 'block';
+      stopRecordBtn.style.display = 'none';
+    });
+
+    // Clone voice button
+    cloneVoiceBtn.addEventListener('click', async () => {
+      if (!voiceBlob) {
+        alert('Please upload or record a voice first.');
+        return;
+      }
+      alert('Voice clone request sent! You will receive a confirmation email shortly.');
+      // TODO: Send voiceBlob to backend API
+    });
+
+    // Update duration when audio loads
+    voicePreview.addEventListener('loadedmetadata', () => {
+      const mins = Math.floor(voicePreview.duration / 60);
+      const secs = Math.floor(voicePreview.duration % 60);
+      durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    });
+  </script>
+</body>
+</html>
