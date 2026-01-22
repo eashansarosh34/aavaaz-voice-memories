@@ -97,40 +97,14 @@ async function startCall() {
     return;
   }
   
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    
-    mediaRecorder.onstart = () => {
-      audioChunks = [];
-      document.getElementById('waveform').style.display = 'flex';
-      document.getElementById('statusIndicator').classList.add('recording');
-      document.getElementById('callStatus').textContent = 'Recording...';
-    };
-    
-    mediaRecorder.ondataavailable = (event) => {
-      audioChunks.push(event.data);
-    };
-    
-    mediaRecorder.onstop = async () => {
-      document.getElementById('waveform').style.display = 'none';
-      document.getElementById('statusIndicator').classList.remove('recording');
-      document.getElementById('callStatus').textContent = 'Processing...';
-      
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-      await sendAudioToGrok
-        (audioBlob, context);
-    };
-    
-    callActive = true;
-    callStartTime = Date.now();
-    document.getElementById('setupScreen').classList.add('hidden');
-    document.getElementById('callScreen').classList.remove('hidden');
-    startCallTimer();
-    addMessage('System', 'Call started. Press and hold the microphone to speak.', 'grok');
-  } catch (err) {
-    alert('Microphone access denied: ' + err.message);
-  }
+    // Bypass microphone - directly call Grok API
+  await sendAudioToGrok(new Blob(), context);
+  callActive = true;
+  callStartTime = Date.now();
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('callScreen').classList.remove('hidden');
+  startCallTimer();
+  addMessage('System', 'Call started. Direct conversation with Grok.', 'grok');
 }
 
 function startRecording() {
