@@ -64,3 +64,5 @@ RAZORPAY_KEY_ID=your_razorpay_id
 
 ## License
 MIT
+
+<!-- Deployment trigger: API routing fix deployed -->
