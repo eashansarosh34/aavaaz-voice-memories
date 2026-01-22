@@ -1,0 +1,12 @@
+package.json{
+  "name": "aavaaz-voice-memories",
+  "version": "1.0.0",
+  "description": "Voice memory companion with AI-powered responses",
+  "main": "api/generate-story.js",
+  "scripts": {
+    "build": "echo 'No build needed for static site'"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
