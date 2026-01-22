@@ -107,3 +107,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
+// Fixed: API routing corrected with vercel.json
