@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>  
 <html>
 <head>
 <meta charset="UTF-8">
@@ -118,7 +118,8 @@ async function startCall() {
       document.getElementById('callStatus').textContent = 'Processing...';
       
       const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-      await sendAudioToGrok(audioBlob, context);
+      await 150
+        (audioBlob, context);
     };
     
     callActive = true;
@@ -147,47 +148,10 @@ function stopRecording() {
   document.getElementById('recordBtn').classList.remove('active');
 }
 
-async function sendAudioToGrok(audioBlob, context) {
+async function 150
+  (audioBlob, context) {
   try {
-    // Convert blob to base64
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const audioBase64 = reader.result.split(',')[1];
-      
-      const requestBody = JSON.stringify({
-        userId: userId,
-        audioBase64: audioBase64,
-        voiceId: DEFAULT_VOICE_ID,
-        context: context,
-        conversation: conversationHistory
-      });
-      
-      addMessage('You', '[Voice message sent]', 'user');
-      document.getElementById('callStatus').textContent = 'Grok is thinking...';
-      
-      const response = await fetch('/api/conversation-loop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: requestBody
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API error: ${response.status} - ${errorText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.grokResponse) {
-        addMessage('Grok', data.grokResponse, 'grok');
-        conversationHistory.push({ user: '[Voice]', grok: data.grokResponse });
-        
-        if (data.audioBase64) {
-          playAudio(data.audioBase64);
-        }
-      }
-      
-      document.getElementById('callStatus').textContent = 'Your turn - Press and hold to speak';
+const audioBase64 = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result.split(',')[1]); reader.onerror = reject; reader.readAsDataURL(audioBlob); }); const requestBody = JSON.stringify({ userId: userId, audioBase64: audioBase64, voiceId: DEFAULT_VOICE_ID, context: context, conversation: conversationHistory }); addMessage('You', '[Voice message sent]', 'user'); document.getElementById('callStatus').textContent = 'Grok is thinking...'; const response = await fetch('/api/conversation-loop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: requestBody }); if (!response.ok) { const errorText = await response.text(); throw new Error(`API error: ${response.status} - ${errorText}`); } const data = await response.json(); if (data.grokResponse) { addMessage('Grok', data.grokResponse, 'grok'); conversationHistory.push({ user: '[Voice]', grok: data.grokResponse }); if (data.audioBase64) { playAudio(data.audioBase64); } } document.getElementById('callStatus').textContent = 'Your turn - Press and hold to speak'      document.getElementById('callStatus').textContent = 'Your turn - Press and hold to speak';
     };
     reader.readAsDataURL(audioBlob);
   } catch (err) {
