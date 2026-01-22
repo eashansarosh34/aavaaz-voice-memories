@@ -1,9 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -17,28 +11,48 @@ export default async function handler(req, res) {
     }
 
     // Call Grok API with voice context
-    const messages = [
-      ...conversationHistory,
-      {
-        role: 'user',
-        content: `Context: ${context}\n\nAudio content received. Please respond conversationally based on the context provided.`,
-      },
-    ];
+    const messages = conversationHistory && Array.isArray(conversationHistory) 
+      ? conversationHistory
+      : [];
 
-    const response = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
-      system: `You are a friendly voice conversation assistant. Keep responses concise and natural for voice interaction. The user wants to have a conversation about: ${context}`,
-      messages: messages,
+    messages.push({
+      role: 'user',
+      content: context,
     });
 
-    const grokResponse = response.content[0].type === 'text' ? response.content[0].text : '';
+    const response = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.XAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'grok-2-1212',
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1024,
+        stream: false,
+      }),
+    });
 
-    // Store conversation history
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Grok API error:', error);
+      return res.status(response.status).json({
+        error: `Grok API error: ${error}`,
+      });
+    }
+
+    const data = await response.json();
+    const grokResponse = data.choices[0].message.content;
+
+    // Update conversation history
     const newHistory = [
-      ...conversationHistory,
-      { role: 'user', content: context },
-      { role: 'assistant', content: grokResponse },
+      ...messages,
+      {
+        role: 'assistant',
+        content: grokResponse,
+      },
     ];
 
     return res.status(200).json({
