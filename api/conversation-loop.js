@@ -123,8 +123,7 @@ Respond with warmth and empathy (2-3 sentences max). Reference their memory if r
       success: true,
       userQuestion: userQuestion,
       grokResponse: responseText,
-      audioBase64: `data:audio/mpeg;base64,${audioBase64Output}`,
-      message: 'Conversation completed successfully'
+audioBase64: audioBase64Output,      message: 'Conversation completed successfully'
     });
 
   } catch (error) {
