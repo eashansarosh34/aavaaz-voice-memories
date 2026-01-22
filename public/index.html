@@ -97,16 +97,45 @@ async function startCall() {
     return;
   }
   
-    // Bypass microphone - directly call Grok API
-  await sendAudioToGrok(new Blob(), context);
-  callActive = true;
-  callStartTime = Date.now();
-  document.getElementById('setupScreen').classList.add('hidden');
-  document.getElementById('callScreen').classList.remove('hidden');
-  startCallTimer();
-  addMessage('System', 'Call started. Direct conversation with Grok.', 'grok');
+    try {
+    // Show call screen
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('callScreen').classList.remove('hidden');
+    callActive = true;
+    callStartTime = Date.now();
+    startCallTimer();
+    addMessage('System', 'Call started. Direct conversation with Grok.', 'grok');
+    
+    // Make API call to Grok
+    const response = await fetch('/api/conversation-loop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: userId,
+        audioBase64: '',
+        voiceId: DEFAULT_VOICE_ID,
+        context: context,
+        conversation: conversationHistory
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (data.grokResponse) {
+      addMessage('Grok', data.grokResponse, 'grok');
+      conversationHistory.push({ role: 'user', content: context });
+      conversationHistory.push({ role: 'assistant', content: data.grokResponse });
+    }
+  } catch (err) {
+    addMessage('System', 'Error: ' + err.message, 'grok');
+    callActive = false;
+    document.getElementById('callScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+  }
 }
-
 function startRecording() {
   if (!callActive || recordingInProgress) return;
   recordingInProgress = true;
