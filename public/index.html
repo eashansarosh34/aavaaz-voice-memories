@@ -234,5 +234,148 @@ function endCall() {
   document.getElementById('conversationBox').innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5);">Conversation will appear here...</div>';
 }
 </script>
+  
+<!-- Cal.com Booking Integration -->
+<div id="bookingScreen" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+  <div style="background: rgba(0,0,0,0.8); padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; color: white;">
+    <h2 style="margin-bottom: 20px;">Book Your Voice Call</h2>
+    <input type="email" id="bookingEmail" placeholder="Your Email" style="width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px;">
+    <input type="text" id="bookingName" placeholder="Your Name" style="width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px;">
+    <input type="datetime-local" id="bookingTime" style="width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px;">
+    <button onclick="proceedToPayment()" style="width: 100%; padding: 12px; margin: 20px 0; background: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">Proceed to Payment</button>
+    <button onclick="goBack()" style="width: 100%; padding: 12px; background: #ff4757; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">Back</button>
+  </div>
+</div>
+
+<!-- Razorpay Payment Integration -->
+<div id="paymentScreen" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+  <div style="background: rgba(0,0,0,0.8); padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; color: white;">
+    <h2 style="margin-bottom: 20px;">Payment - ₹499</h2>
+    <p style="margin-bottom: 20px; font-size: 14px; color: rgba(255,255,255,0.8);">30-minute voice call session with Grok AI</p>
+    <button onclick="initiateRazorpayPayment()" style="width: 100%; padding: 12px; margin: 20px 0; background: #FF9800; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;">Pay with Razorpay</button>
+    <button onclick="goBack()" style="width: 100%; padding: 12px; background: #ff4757; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">Back</button>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+let currentBooking = {};
+
+function proceedToPayment() {
+  const email = document.getElementById('bookingEmail').value;
+  const name = document.getElementById('bookingName').value;
+  const time = document.getElementById('bookingTime').value;
+  
+  if (!email || !name || !time) {
+    alert('Please fill all fields');
+    return;
+  }
+  
+  currentBooking = { email, name, time };
+  document.getElementById('bookingScreen').classList.add('hidden');
+  document.getElementById('paymentScreen').classList.remove('hidden');
+}
+
+async function initiateRazorpayPayment() {
+  try {
+    const response = await fetch('/api/payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: 499,
+        userId: 'user-' + Date.now(),
+        email: currentBooking.email,
+        description: 'Aavaaz Voice Call - 30 minutes'
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency,
+        order_id: data.orderId,
+        handler: async function(response) {
+          await verifyPayment(data.orderId, response.razorpay_payment_id, response.razorpay_signature);
+        },
+        prefill: {
+          email: currentBooking.email,
+          name: currentBooking.name
+        }
+      };
+      
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
+  } catch (err) {
+    alert('Payment error: ' + err.message);
+  }
+}
+
+async function verifyPayment(orderId, paymentId, signature) {
+  try {
+    const response = await fetch('/api/payment-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, paymentId, signature })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      alert('Payment successful! Booking confirmed.');
+      createCalendarBooking();
+    }
+  } catch (err) {
+    alert('Verification error: ' + err.message);
+  }
+}
+
+async function createCalendarBooking() {
+  try {
+    const response = await fetch('/api/booking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: 'user-' + Date.now(),
+        email: currentBooking.email,
+        name: currentBooking.name,
+        eventTypeId: 1,
+        startTime: currentBooking.time,
+        duration: 30
+      })
+    });
+    
+    const booking = await response.json();
+    if (booking.success) {
+      document.getElementById('paymentScreen').classList.add('hidden');
+      document.getElementById('setupScreen').classList.remove('hidden');
+      alert('Your booking is confirmed!');
+    }
+  } catch (err) {
+    console.error('Booking error:', err);
+  }
+}
+
+function goBack() {
+  document.getElementById('bookingScreen').classList.add('hidden');
+  document.getElementById('paymentScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+}
+
+// Add booking button to setup screen
+window.addEventListener('DOMContentLoaded', function() {
+  const setupBtn = document.createElement('button');
+  setupBtn.textContent = 'Book & Pay';
+  setupBtn.style.cssText = 'background: #FF9800; color: white; border: none; padding: 12px 30px; border-radius: 25px; margin: 10px; font-size: 14px; cursor: pointer;';
+  setupBtn.onclick = function() {
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('bookingScreen').classList.remove('hidden');
+  };
+  const controls = document.querySelector('.setup-screen');
+  if (controls) controls.parentNode.insertBefore(setupBtn, controls);
+});
+</script>
 </body>
 </html>
