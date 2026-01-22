@@ -3,436 +3,242 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aavaaz - Voice Memory Companion</title>
+<title>Aavaaz - Live Voice Call</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', Tahoma, Geneva; background: #f5f5f5; }
-.navbar { background: rgba(0,0,0,0.8); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; }
-.navbar h1 { font-size: 24px; }
-.nav-links { display: flex; gap: 20px; align-items: center; }
-.nav-links a, .nav-links button { color: white; text-decoration: none; background: 0; border: 0; cursor: pointer; font-size: 14px; }
-.logout-btn { background: #ff4757; padding: 8px 16px; border-radius: 4px; }
-.dashboard-page { display: none; padding: 20px; }
-.dashboard-page.active { display: grid; grid-template-columns: 250px 1fr; gap: 20px; }
-.sidebar { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.sidebar h3 { margin-bottom: 15px; color: #333; }
-.sidebar a { display: block; padding: 12px; margin-bottom: 10px; background: #f0f0f0; border-radius: 4px; cursor: pointer; color: #333; transition: all 0.3s; }
-.sidebar a:hover { background: #667eea; color: white; }
-.sidebar a.active { background: #667eea; color: white; }
-.content-area { background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.content-section { display: none; }
-.content-section.active { display: block; }
-.section-title { font-size: 28px; color: #333; margin-bottom: 20px; }
-.btn-record { background: #667eea; color: white; padding: 15px 40px; border: 0; border-radius: 4px; cursor: pointer; margin-bottom: 20px; font-weight: bold; transition: all 0.3s; }
-.btn-record:hover { background: #5568d3; }
-.btn-record.recording { background: #ff4757; animation: pulse 1s infinite; }
-.btn-delete { background: #ff4757; color: white; padding: 10px 20px; border: 0; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold; }
-.btn-delete:hover { background: #ff3838; }
-.btn-play { background: #4CAF50; color: white; padding: 10px 20px; border: 0; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold; }
-.btn-play:hover { background: #45a049; }
-.voice-setup { background: #f0f7ff; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea; }
-.voice-setup h3 { margin-bottom: 15px; color: #333; }
-.voice-setup p { color: #666; margin-bottom: 10px; font-size: 14px; }
-.input-group { margin-bottom: 15px; }
-.input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
-.input-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
-.conversation-history { background: #fff9e6; padding: 15px; border-radius: 8px; margin-bottom: 20px; min-height: 150px; max-height: 400px; overflow-y: auto; border: 1px solid #ddd; }
-.message { margin-bottom: 15px; padding: 10px; border-radius: 6px; }
-.message.user { background: #667eea; color: white; margin-left: 20px; }
-.message.grok { background: #e8f5e9; color: #333; margin-right: 20px; border-left: 4px solid #4CAF50; }
-.recording-preview { background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107; display: none; }
-.recording-preview.show { display: block; }
-.recording-preview h4 { margin-bottom: 10px; color: #333; }
-.recording-buttons { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.voice-player { background: white; padding: 10px; border-radius: 4px; display: flex; align-items: center; gap: 10px; flex: 1; }
-.status-text { font-size: 12px; color: #999; margin-top: 5px; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+body { font-family: 'Segoe UI', Arial; background: #1a1a1a; color: white; }
+.call-container { width: 100%; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.call-header { text-align: center; margin-bottom: 30px; }
+.call-header h1 { font-size: 32px; margin-bottom: 10px; }
+.call-status { font-size: 18px; opacity: 0.9; }
+.call-timer { font-size: 24px; margin: 20px 0; font-weight: bold; font-family: 'Courier New'; }
+.call-info { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+.waveform { width: 300px; height: 60px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.bar { width: 4px; height: 30px; background: white; border-radius: 2px; animation: wave 0.6s ease-in-out infinite; }
+.bar:nth-child(2) { animation-delay: 0.1s; }
+.bar:nth-child(3) { animation-delay: 0.2s; }
+.bar:nth-child(4) { animation-delay: 0.3s; }
+.bar:nth-child(5) { animation-delay: 0.4s; }
+@keyframes wave { 0%, 100% { height: 20px; } 50% { height: 50px; } }
+.conversation-box { background: rgba(0,0,0,0.4); padding: 30px; border-radius: 15px; width: 90%; max-width: 600px; margin-bottom: 30px; max-height: 300px; overflow-y: auto; }
+.message { margin-bottom: 15px; padding: 12px 15px; border-radius: 10px; word-wrap: break-word; }
+.message.user { background: #667eea; text-align: right; margin-left: 20px; }
+.message.grok { background: rgba(255,255,255,0.2); text-align: left; margin-right: 20px; border-left: 4px solid #4CAF50; }
+.message-label { font-size: 12px; opacity: 0.7; margin-bottom: 5px; }
+.controls { display: flex; gap: 15px; align-items: center; }
+.btn-call { background: #4CAF50; color: white; border: none; padding: 15px 40px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+.btn-call:hover { background: #45a049; transform: scale(1.05); }
+.btn-call.active { background: #ff4757; animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,71,87,0.7); } 70% { box-shadow: 0 0 0 15px rgba(255,71,87,0); } }
+.btn-end { background: #ff4757; color: white; border: none; padding: 15px 40px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+.btn-end:hover { background: #ff3838; }
+.status-indicator { width: 20px; height: 20px; border-radius: 50%; background: #4CAF50; animation: blink 2s infinite; }
+.status-indicator.recording { background: #ff4757; }
+@keyframes blink { 0%, 49%, 100% { opacity: 1; } 50%, 99% { opacity: 0.3; } }
+.setup-screen { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.hidden { display: none !important; }
 </style>
 </head>
-<body><div class="navbar">
-<h1>Aavaaz</h1>
-<div class="nav-links">
-<a href="#">Home</a>
-<a href="#">Privacy</a>
-<button class="logout-btn" onclick="logout()">Logout</button>
-</div>
+<body>
+
+<div class="call-container">
+  <!-- Setup Screen -->
+  <div id="setupScreen" class="setup-screen">
+    <h1>Welcome to Aavaaz</h1>
+    <p style="font-size: 18px; margin-bottom: 20px;">Live Voice Conversation with Grok AI</p>
+    <div style="background: rgba(0,0,0,0.3); padding: 30px; border-radius: 15px; text-align: center;">
+      <label style="font-size: 16px; margin-bottom: 15px; display: block;">Your Story/Context:</label>
+      <textarea id="storyContext" placeholder="Tell us about your story so Grok understands better..." style="width: 100%; padding: 15px; border-radius: 8px; border: none; font-family: inherit; min-height: 120px; color: #333;"></textarea>
+      <button onclick="startCall()" class="btn-call" style="margin-top: 20px; width: 100%;">Start Call</button>
+    </div>
+  </div>
+
+  <!-- Call Screen -->
+  <div id="callScreen" class="hidden">
+    <div class="call-header">
+      <h1 id="callerName">Speaking with Grok</h1>
+      <div class="call-status" id="callStatus">Call Active</div>
+    </div>
+    
+    <div class="call-info">
+      <div class="call-timer" id="callTimer">00:00</div>
+      <div style="font-size: 14px; opacity: 0.8;">Press and hold to speak, release to listen</div>
+    </div>
+
+    <!-- Waveform Animation -->
+    <div class="waveform" id="waveform" style="display: none;">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+    
+    <!-- Conversation History -->
+    <div class="conversation-box" id="conversationBox">
+      <div style="text-align: center; color: rgba(255,255,255,0.5);">Conversation will appear here...</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="status-indicator" id="statusIndicator"></div>
+      <button id="recordBtn" class="btn-call" onmousedown="startRecording()" onmouseup="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">🎤 Hold to Speak</button>
+      <button class="btn-end" onclick="endCall()">End Call</button>
+    </div>
+  </div>
 </div>
 
-<div class="dashboard-page" id="dashboardPage">
-<div class="sidebar">
-<h3>Navigation</h3>
-<a class="nav-item active" onclick="switchSection('voice-conversation',this)">Voice Conversation</a>
-<a class="nav-item" onclick="switchSection('recordings',this)">My Recordings</a>
-<a class="nav-item" onclick="switchSection('settings',this)">Settings</a>
-</div>
-
-<div class="content-area">
-<div class="content-section active" id="voice-conversation-section">
-<h2 class="section-title">Voice Memory Conversation</h2>
-
-<div class="voice-setup">
-<h3>1. Setup Your Story Context</h3>
-<p>Tell us about your story/memory that Grok will understand to give better responses</p>
-<div class="input-group">
-<label>Your Story Context:</label>
-<textarea id="storyContext" placeholder="Share the story or context..." rows="4"></textarea>
-</div>
-<button class="btn-record" onclick="saveContext()">Save Context</button>
-<div id="contextStatus" class="status-text"></div>
-</div>
-
-<div class="voice-setup">
-<h3>2. Setup Your Reference Voice</h3>
-<p>Record a reference voice</p>
-<button class="btn-record" id="refVoiceBtn" onclick="toggleReferenceRecording()">Record Reference Voice</button>
-<div id="refVoiceStatus" class="status-text"></div>
-<div id="recordingPreview" class="recording-preview">
-<h4>Your Voice Recording</h4>
-<div class="recording-buttons">
-<audio id="voicePreview" class="voice-player" controls></audio>
-<button class="btn-play" onclick="playRecording()">Play</button>
-<button class="btn-delete" onclick="deleteRecording()">Delete</button>
-<button class="btn-record" onclick="confirmRecording()" style="background:#4CAF50">Confirm</button>
-</div>
-</div>
-</div>
-
-<div class="voice-setup">
-<h3>3. Have a Voice Conversation</h3>
-<p>Record your voice and Grok will respond</p>
-<div class="input-group">
-<label>Press Record and Speak:</label>
-<button class="btn-record" id="userVoiceBtn" onclick="toggleUserRecording()">Record Your Message</button>
-<textarea id="userInput" placeholder="Or type your message..." rows="2"></textarea>
-</div>
-<div class="recording-buttons">
-<button class="btn-record" onclick="sendVoiceMessage()">Send & Get Response</button>
-</div>
-<div id="conversationStatus" class="status-text"></div>
-</div>
-</div>
-
-<div class="content-section" id="recordings-section">
-<h2 class="section-title">My Recordings</h2>
-<p>Your saved voice recordings will appear here</p>
-<div id="recordingsList"></div>
-</div>
-
-<div class="content-section" id="settings-section">
-<h2 class="section-title">Settings</h2>
-<p>Settings page coming soon</p>
-</div>
-
-<div id="conversationHistory" class="conversation-history"></div>
-</div>
-</div>
-
-</body>
 <script>
-let currentUser = null;
-let isRecording = false;
-let mediaRecorder = null;
+let mediaRecorder;
 let audioChunks = [];
-let recordedAudioUrl = null;
-let referenceVoiceId = null;
-let tempRecording = false;
-let userAudioBlob = null;
+let callActive = false;
+let callStartTime = 0;
+let recordingInProgress = false;
+const conversationHistory = [];
 
-function initApp() {
-  const user = localStorage.getItem('currentUser') || 'demo_user';
-  currentUser = user;
-  showDashboard();
-  loadReferenceVoice();
-}
-
-function logout() {
-  localStorage.removeItem('currentUser');
-  location.reload();
-}
-
-function showDashboard() {
-  document.getElementById('dashboardPage').classList.add('active');
-}
-
-function switchSection(section, element) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById(section + '-section').classList.add('active');
-  element.classList.add('active');
-}
-
-async function saveContext() {
+async function startCall() {
   const context = document.getElementById('storyContext').value;
-  const status = document.getElementById('contextStatus');
-  
   if (!context.trim()) {
-    status.textContent = 'Please enter your story context';
-    status.style.color = '#ff4757';
+    alert('Please enter your story context');
     return;
   }
   
-  status.textContent = 'Saving context...';
-  status.style.color = '#ff9800';
-  
+  // Request microphone access
   try {
-    const response = await fetch('/api/save-context', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user: currentUser,
-        context: context
-      })
-    });
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
     
-    const data = await response.json();
-    if (data.success) {
-      status.textContent = 'Context saved successfully!';
-      status.style.color = '#4CAF50';
-    } else {
-      status.textContent = 'Error: ' + (data.error || 'Unknown error');
-      status.style.color = '#ff4757';
-    }
-  } catch (e) {
-    status.textContent = 'Error: ' + e.message;
-    status.style.color = '#ff4757';
-  }
-}
-
-function toggleReferenceRecording() {
-  const btn = document.getElementById('refVoiceBtn');
-  const status = document.getElementById('refVoiceStatus');
-  const preview = document.getElementById('recordingPreview');
-  
-  if (!isRecording) {
-    isRecording = true;
-    btn.textContent = 'Stop Recording';
-    btn.classList.add('recording');
-    status.textContent = 'Recording...';
-    status.style.color = '#ff4757';
-    startRecording();
-  } else {
-    isRecording = false;
-    btn.textContent = 'Record Reference Voice';
-    btn.classList.remove('recording');
-    status.textContent = 'Processing...';
-    status.style.color = '#ff9800';
-    stopRecording();
+    mediaRecorder.onstart = () => {
+      audioChunks = [];
+      document.getElementById('waveform').style.display = 'flex';
+      document.getElementById('statusIndicator').classList.add('recording');
+      document.getElementById('callStatus').textContent = 'Recording...';
+    };
+    
+    mediaRecorder.ondataavailable = (event) => {
+      audioChunks.push(event.data);
+    };
+    
+    mediaRecorder.onstop = async () => {
+      document.getElementById('waveform').style.display = 'none';
+      document.getElementById('statusIndicator').classList.remove('recording');
+      document.getElementById('callStatus').textContent = 'Call Active';
+      
+      // Send audio to backend API
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      await sendAudioToGrok(audioBlob, context);
+    };
+    
+    // Start call
+    callActive = true;
+    callStartTime = Date.now();
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('callScreen').classList.remove('hidden');
+    
+    // Start timer
+    startCallTimer();
+    
+    // Add initial message
+    addMessage('System', 'Call started. Press and hold the microphone to speak.', 'grok');
+  } catch (err) {
+    alert('Microphone access denied: ' + err.message);
   }
 }
 
 function startRecording() {
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunks, { type: 'audio/wav' });
-        recordedAudioUrl = URL.createObjectURL(blob);
-        const preview = document.getElementById('recordingPreview');
-        const status = document.getElementById('refVoiceStatus');
-        
-        if (recordedAudioUrl) {
-          preview.classList.add('show');
-          document.getElementById('voicePreview').src = recordedAudioUrl;
-          status.textContent = 'Recording saved! Play to verify, then confirm or delete.';
-          status.style.color = '#4CAF50';
-          tempRecording = true;
-        }
-      };
-      mediaRecorder.start();
-    })
-    .catch(err => {
-      alert('Microphone access denied: ' + err.message);
-      isRecording = false;
-      const btn = document.getElementById('refVoiceBtn');
-      btn.textContent = 'Record Reference Voice';
-      btn.classList.remove('recording');
-    });
+  if (!callActive || recordingInProgress) return;
+  recordingInProgress = true;
+  audioChunks = [];
+  mediaRecorder.start();
+  document.getElementById('recordBtn').classList.add('active');
 }
 
 function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-  }
+  if (!recordingInProgress) return;
+  recordingInProgress = false;
+  mediaRecorder.stop();
+  document.getElementById('recordBtn').classList.remove('active');
 }
 
-function playRecording() {
-  const audio = document.getElementById('voicePreview');
-  if (audio.src) {
-    audio.play().catch(e => console.error('Playback error:', e));
-  }
-}
-
-function deleteRecording() {
-  const preview = document.getElementById('recordingPreview');
-  const status = document.getElementById('refVoiceStatus');
-  const btn = document.getElementById('refVoiceBtn');
-  
-  if (recordedAudioUrl) {
-    URL.revokeObjectURL(recordedAudioUrl);
-  }
-  recordedAudioUrl = null;
-  audioChunks = [];
-  tempRecording = false;
-  preview.classList.remove('show');
-  btn.textContent = 'Record Reference Voice';
-  btn.classList.remove('recording');
-  status.textContent = 'Recording deleted. Ready to record again.';
-  status.style.color = '#999';
-}
-
-function confirmRecording() {
-  if (!recordedAudioUrl) {
-    alert('No recording to confirm');
-    return;
-  }
-  const preview = document.getElementById('recordingPreview');
-  const status = document.getElementById('refVoiceStatus');
-  const btn = document.getElementById('refVoiceBtn');
-  
-  localStorage.setItem('referenceVoice_' + currentUser, recordedAudioUrl);
-  referenceVoiceId = 'savedVoice';
-  tempRecording = false;
-  preview.classList.remove('show');
-  btn.textContent = 'Record Reference Voice';
-  btn.classList.remove('recording');
-  status.textContent = 'Reference voice confirmed and saved!';
-  status.style.color = '#4CAF50';
-}
-
-function loadReferenceVoice() {
-  const saved = localStorage.getItem('referenceVoice_' + currentUser);
-  if (saved) {
-    referenceVoiceId = 'savedVoice';
-    document.getElementById('refVoiceStatus').textContent = 'Reference voice loaded';
-  }
-}
-
-function toggleUserRecording() {
-  const btn = document.getElementById('userVoiceBtn');
-  const status = document.getElementById('conversationStatus');
-  
-  if (!isRecording) {
-    isRecording = true;
-    btn.textContent = 'Stop Recording';
-    btn.classList.add('recording');
-    status.textContent = 'Recording your message...';
-    status.style.color = '#ff4757';
-    startUserRecording();
-  } else {
-    isRecording = false;
-    btn.textContent = 'Record Your Message';
-    btn.classList.remove('recording');
-    status.textContent = 'Processing...';
-    status.style.color = '#ff9800';
-    stopRecording();
-  }
-}
-
-function startUserRecording() {
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-      mediaRecorder.onstop = () => {
-        userAudioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const status = document.getElementById('conversationStatus');
-        status.textContent = 'Recording ready. Click Send & Get Response to process.';
-        status.style.color = '#4CAF50';
-      };
-      mediaRecorder.start();
-    })
-    .catch(err => {
-      alert('Microphone access denied: ' + err.message);
-      isRecording = false;
-      const btn = document.getElementById('userVoiceBtn');
-      btn.textContent = 'Record Your Message';
-      btn.classList.remove('recording');
-    });
-}
-
-async function sendVoiceMessage() {
-  const userInput = document.getElementById('userInput').value;
-  const status = document.getElementById('conversationStatus');
-  const historyDiv = document.getElementById('conversationHistory');
-  
-  if (!userInput && !userAudioBlob) {
-    alert('Please either type a message or record one');
-    return;
-  }
-  
-  if (!referenceVoiceId) {
-    alert('Please record and confirm a reference voice first');
-    return;
-  }
-  
-  const userMsg = document.createElement('div');
-  userMsg.className = 'message user';
-  userMsg.textContent = 'You: ' + (userInput || '[Voice message]');
-  historyDiv.appendChild(userMsg);
-  historyDiv.scrollTop = historyDiv.scrollHeight;
-  
-  const grokMsg = document.createElement('div');
-  grokMsg.className = 'message grok';
-  grokMsg.innerHTML = 'Grok: <em>Generating response...</em>';
-  historyDiv.appendChild(grokMsg);
-  
-  status.textContent = 'Processing your message...';
-  status.style.color = '#ff9800';
-  
+async function sendAudioToGrok(audioBlob, context) {
   try {
     const formData = new FormData();
-    formData.append('user', currentUser);
-    formData.append('userInput', userInput);
-    formData.append('voiceId', referenceVoiceId);
-    if (userAudioBlob) {
-      formData.append('audio', userAudioBlob, 'user-audio.wav');
-    }
+    formData.append('audio', audioBlob);
+    formData.append('context', context);
+    formData.append('conversation', JSON.stringify(conversationHistory));
     
+    // Add user message
+    addMessage('You', '[Voice message sent]', 'user');
+    document.getElementById('callStatus').textContent = 'Grok is thinking...';
+    
+    // Call backend API
     const response = await fetch('/api/conversation-loop', {
       method: 'POST',
       body: formData
     });
     
-    const data = await response.json();
-    if (data.success) {
-      grokMsg.innerHTML = 'Grok: ' + data.response;
-      if (data.audioUrl) {
-        const audioElement = document.createElement('audio');
-        audioElement.controls = true;
-        audioElement.src = data.audioUrl;
-        audioElement.style.marginTop = '10px';
-        grokMsg.appendChild(audioElement);
-      }
-      status.textContent = 'Response received!';
-      status.style.color = '#4CAF50';
-    } else {
-      grokMsg.innerHTML = 'Grok: Error - ' + (data.error || 'Unknown error');
-      status.textContent = 'Error: ' + (data.error || 'Unknown error');
-      status.style.color = '#ff4757';
+    if (!response.ok) {
+      throw new Error('API error: ' + response.status);
     }
-  } catch (e) {
-    grokMsg.innerHTML = 'Grok: Error - ' + e.message;
-    status.textContent = 'Error: ' + e.message;
-    status.style.color = '#ff4757';
+    
+    const data = await response.json();
+    
+    if (data.response) {
+      addMessage('Grok', data.response, 'grok');
+      conversationHistory.push({ user: '[Voice]', grok: data.response });
+      
+      // Play Grok's response as audio (if available)
+      if (data.audio) {
+        playAudio(data.audio);
+      }
+    }
+    
+    document.getElementById('callStatus').textContent = 'Call Active';
+  } catch (err) {
+    addMessage('System', 'Error: ' + err.message, 'grok');
+    document.getElementById('callStatus').textContent = 'Call Active';
   }
-  
-  historyDiv.scrollTop = historyDiv.scrollHeight;
-  document.getElementById('userInput').value = '';
-  userAudioBlob = null;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!localStorage.getItem('currentUser')) {
-    initApp();
-  } else {
-    currentUser = localStorage.getItem('currentUser');
-    showDashboard();
-    loadReferenceVoice();
+function addMessage(sender, text, type) {
+  const box = document.getElementById('conversationBox');
+  const msg = document.createElement('div');
+  msg.className = 'message ' + type;
+  msg.innerHTML = '<div class="message-label">' + sender + '</div>' + text;
+  box.appendChild(msg);
+  box.scrollTop = box.scrollHeight;
+}
+
+function startCallTimer() {
+  setInterval(() => {
+    if (callActive) {
+      const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      document.getElementById('callTimer').textContent = 
+        String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    }
+  }, 1000);
+}
+
+function playAudio(audioData) {
+  // Decode and play audio response from Grok
+  const audio = new Audio('data:audio/wav;base64,' + audioData);
+  audio.play();
+}
+
+function endCall() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
   }
-});
+  callActive = false;
+  document.getElementById('callScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+  document.getElementById('storyContext').value = '';
+  conversationHistory.length = 0;
+  document.getElementById('conversationBox').innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5);">Conversation will appear here...</div>';
+}
 </script>
+
+</body>
 </html>
