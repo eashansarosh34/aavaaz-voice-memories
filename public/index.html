@@ -166,13 +166,10 @@
       <h1>Aavaaz Voice Call</h1>
       <p>Continuous conversation</p>
     </div>
-
     <div class="call-status" id="callStatus">
       <span class="status-indicator"></span>Ready to connect
     </div>
-
     <div class="call-timer" id="callTimer">00:00</div>
-
     <div class="waveform" id="waveform" style="display: none;">
       <div class="wave-bar"></div>
       <div class="wave-bar"></div>
@@ -180,25 +177,32 @@
       <div class="wave-bar"></div>
       <div class="wave-bar"></div>
     </div>
-
     <div class="controls">
       <button class="btn btn-call" id="startCallBtn" onclick="startCall()">Start Call</button>
       <button class="btn btn-end" id="endCallBtn" onclick="endCall()">End Call</button>
     </div>
-
     <div class="conversation-box" id="conversationBox"></div>
   </div>
 
   <script>
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const synthesis = window.speechSynthesis;
+    
     let callActive = false;
     let callStartTime = null;
     let timerInterval = null;
     let sessionId = 'session-' + Date.now();
+    let conversation = [];
     const userEmail = 'eashansarosh@gmail.com';
-
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
     async function startCall() {
       callActive = true;
       callStartTime = Date.now();
+      conversation = [];
       
       document.getElementById('startCallBtn').style.display = 'none';
       document.getElementById('endCallBtn').style.display = 'block';
@@ -207,65 +211,98 @@
       document.getElementById('conversationBox').innerHTML = '';
       
       startTimer();
-      addMessage('system', 'Call started. Listening...');
+      addMessage('system', 'Call started. Listening for your voice...');
       
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        continuousConversationLoop(stream);
+        continuousConversationLoop();
       } catch (error) {
-        addMessage('system', 'Microphone access denied');
+        addMessage('system', 'Error: Microphone access denied');
         resetCall();
       }
     }
-
-    async function continuousConversationLoop(stream) {
-      while (callActive) {
+    
+    function continuousConversationLoop() {
+      if (!callActive) return;
+      
+      addMessage('system', 'Listening...');
+      
+      recognition.onstart = () => {
+        console.log('Speech recognition started');
+      };
+      
+      recognition.onresult = async (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        
+        if (transcript.trim().length === 0) {
+          addMessage('system', 'No speech detected. Listening again...');
+          if (callActive) setTimeout(continuousConversationLoop, 500);
+          return;
+        }
+        
+        addMessage('user', transcript);
+        
         try {
-          const audioBlob = await recordAudio(stream);
-          if (!callActive) break;
-          
-          addMessage('system', 'Processing...');
-          
+          addMessage('system', 'Sending to Grok...');
           const response = await fetch('/api/conversation-loop', {
             method: 'POST',
-            body: audioBlob,
             headers: {
-              'Content-Type': 'audio/webm',
+              'Content-Type': 'application/json',
               'X-User-ID': sessionId,
               'X-User-Email': userEmail
-            }
+            },
+            body: JSON.stringify({
+              userId: sessionId,
+              context: transcript,
+              conversation: conversation,
+              voiceId: 'default'
+            })
           });
           
-          if (response.ok) {
-            const audioData = await response.arrayBuffer();
-            const audio = new Audio(URL.createObjectURL(new Blob([audioData], { type: 'audio/mpeg' })));
-            await new Promise(resolve => {
-              audio.onended = resolve;
-              audio.play();
-            });
+          if (!response.ok) {
+            const error = await response.text();
+            addMessage('system', 'API Error: ' + error);
+            if (callActive) setTimeout(continuousConversationLoop, 500);
+            return;
           }
           
-          await new Promise(resolve => setTimeout(resolve, 500));
+          const data = await response.json();
+          const grokResponse = data.grokResponse;
+          conversation = data.conversation || conversation;
+          
+          addMessage('assistant', grokResponse);
+          
+          // Text to speech using browser synthesis
+          const utterance = new SpeechSynthesisUtterance(grokResponse);
+          utterance.rate = 1;
+          utterance.onend = () => {
+            if (callActive) setTimeout(continuousConversationLoop, 500);
+          };
+          synthesis.speak(utterance);
+          
         } catch (error) {
           console.error('Error:', error);
           addMessage('system', 'Error: ' + error.message);
+          if (callActive) setTimeout(continuousConversationLoop, 500);
         }
-      }
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        addMessage('system', 'Error: ' + event.error);
+        if (callActive) setTimeout(continuousConversationLoop, 500);
+      };
+      
+      recognition.onend = () => {
+        console.log('Speech recognition ended');
+      };
+      
+      recognition.start();
     }
-
-    function recordAudio(stream) {
-      return new Promise((resolve) => {
-        const recorder = new MediaRecorder(stream);
-        const chunks = [];
-        
-        recorder.ondataavailable = e => chunks.push(e.data);
-        recorder.onstop = () => resolve(new Blob(chunks, { type: 'audio/webm' }));
-        
-        recorder.start();
-        setTimeout(() => recorder.stop(), 5000);
-      });
-    }
-
+    
     function addMessage(sender, text) {
       const box = document.getElementById('conversationBox');
       const msgEl = document.createElement('div');
@@ -274,7 +311,7 @@
       box.appendChild(msgEl);
       box.scrollTop = box.scrollHeight;
     }
-
+    
     function startTimer() {
       timerInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
@@ -284,13 +321,15 @@
           String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
       }, 1000);
     }
-
+    
     function endCall() {
       callActive = false;
+      recognition.stop();
+      synthesis.cancel();
       resetCall();
       addMessage('system', 'Call ended. Email: eashansarosh@gmail.com');
     }
-
+    
     function resetCall() {
       callActive = false;
       clearInterval(timerInterval);
