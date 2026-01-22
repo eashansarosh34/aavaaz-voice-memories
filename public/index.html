@@ -238,6 +238,23 @@ function endCall() {
   conversationHistory.length = 0;
   document.getElementById('conversationBox').innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5);">Conversation will appear here...</div>';
 }
+  
+// Event listeners for hold-to-speak button
+const recordBtn = document.getElementById('recordBtn');
+if (recordBtn) {
+  recordBtn.addEventListener('mousedown', startRecording);
+  recordBtn.addEventListener('mouseup', stopRecording);
+  recordBtn.addEventListener('mouseleave', stopRecording);
+  recordBtn.addEventListener('touchstart', startRecording);
+  recordBtn.addEventListener('touchend', stopRecording);
+}
+  
+// After Grok response, automatically prompt for next input
+setTimeout(() => {
+  if (callActive) {
+    document.getElementById('callStatus').textContent = 'Your turn - Press and hold to speak';
+  }
+}, 500);
 </script>
 
 </body>
