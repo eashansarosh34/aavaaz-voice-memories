@@ -1,4 +1,4 @@
-package.json{
+{
   "name": "aavaaz-voice-memories",
   "version": "1.0.0",
   "description": "Voice memory companion with AI-powered responses",
