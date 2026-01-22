@@ -1,130 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aavaaz - Voice Memory Companion</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-    .navbar { background: rgba(0,0,0,0.7); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-    .navbar h1 { color: white; font-size: 24px; }
-    .nav-links { display: flex; gap: 20px; align-items: center; }
-    .nav-links a, .nav-links button { color: white; text-decoration: none; background: none; border: none; cursor: pointer; font-size: 14px; }
-    .nav-links button { background: #ff4757; padding: 8px 16px; border-radius: 4px; display: none; }
-    .hero { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 60px); text-align: center; color: white; }
-    .hero h1 { font-size: 48px; margin-bottom: 20px; }
-    .hero p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
-    .btn { padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s; }
-    .btn-primary { background: #4CAF50; color: white; }
-    .btn-primary:hover { background: #45a049; transform: scale(1.05); }
-    .btn-secondary { background: #6366f1; color: white; }
-    .btn-secondary:hover { background: #4f46e5; }
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: white; padding: 40px; border-radius: 10px; max-width: 400px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-    .modal-box h2 { color: #333; margin-bottom: 25px; text-align: center; font-size: 24px; }
-    .modal-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
-    .modal-box button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; }
-    .modal-box .btn-login { background: #6366f1; color: white; }
-    .modal-box .btn-login:hover { background: #4f46e5; }
-    .modal-box .btn-signup { background: #6366f1; color: white; }
-    .modal-box .btn-signup:hover { background: #4f46e5; }
-    .modal-box .btn-close { background: #999; color: white; }
-    .modal-box .btn-close:hover { background: #777; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aavaaz - Voice Memory Companion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 24px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-links a,
+        .nav-links button {
+            color: white;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-links button {
+            background: #ff4757;
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 60px);
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-box h2 {
+            color: #333;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .modal-box button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .modal-box .btn-login {
+            background: #6366f1;
+            color: white;
+        }
+
+        .modal-box .btn-login:hover {
+            background: #4f46e5;
+        }
+
+        .modal-box .btn-signup {
+            background: #6366f1;
+            color: white;
+        }
+
+        .modal-box .btn-signup:hover {
+            background: #4f46e5;
+        }
+
+        .modal-box .btn-close {
+            background: #999;
+            color: white;
+        }
+
+        .modal-box .btn-close:hover {
+            background: #777;
+        }
+    </style>
 </head>
+
 <body>
-  <!-- Navigation Bar -->
-  <nav class="navbar">
-    <h1 class="logo">Aavaaz</h1>
-    <div class="nav-links">
-      <a href="/index.html">Home</a>
-      <a href="/privacy.html">Privacy</a>
-      <button id="logout-btn" style="display:none">Logout</button>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <h1 class="logo">Aavaaz</h1>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/privacy.html">Privacy</a>
+            <button id="logout-btn" style="display: none;">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Preserve the Comfort of a Loved One's Voice</h1>
+        <p>For families and seniors in premium care homes.</p>
+        <button class="btn btn-primary" id="start-btn">Start Free Pilot</button>
+    </section>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal-box">
+            <h2>Login / Signup</h2>
+            <input type="email" id="email" placeholder="Email" />
+            <input type="password" id="password" placeholder="Password" />
+            <select id="payment-method">
+                <option value="">Select Payment Method</option>
+                <option value="cod">Cash On Delivery</option>
+            </select>
+            <button class="btn-login" id="login-btn">Login</button>
+            <button class="btn-signup" id="signup-btn">Signup</button>
+            <button class="btn-close" id="close-btn">Close</button>
+        </div>
     </div>
-  </nav>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <h1>Preserve the Comfort of a Loved One's Voice</h1>
-    <p>For families and seniors in premium care homes.</p>
-    <button class="btn btn-primary" id="start-btn">Start Free Pilot</button>
-  </section>
+    <script>
+        // Get all the elements
+        const authModal = document.getElementById('auth-modal');
+        const startBtn = document.getElementById('start-btn');
+        const closeBtn = document.getElementById('close-btn');
+        const loginBtn = document.getElementById('login-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const paymentMethod = document.getElementById('payment-method');
 
-  <!-- Auth Modal -->
-  <div class="modal-overlay" id="auth-modal">
-    <div class="modal-box">
-      <h2>Login / Signup</h2>
-      <input type="email" id="email" placeholder="Email" />
-      <input type="password" id="password" placeholder="Password" />
-      <button class="btn-login" id="login-btn">Login</button>
-      <button class="btn-signup" id="signup-btn">Signup</button>
-      <button class="btn-close" id="close-btn">Close</button>
-    </div>
-  </div>
+        // Ensure modal is closed on page load
+        window.addEventListener('load', function() {
+            authModal.classList.remove('active');
+            console.log('Page loaded - Modal initialized as closed');
+        });
 
-  <script>
-    // Modal Functions
-    const authModal = document.getElementById('auth-modal');
-    const startBtn = document.getElementById('start-btn');
-    const closeBtn = document.getElementById('close-btn');
-    const loginBtn = document.getElementById('login-btn');
-    const signupBtn = document.getElementById('signup-btn');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
+        // Show Modal when Start button is clicked
+        startBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            authModal.classList.add('active');
+            console.log('Start button clicked - Modal opened');
+        });
 
-    // Show Modal
-    startBtn.addEventListener('click', function() {
-      authModal.classList.add('active');
-      console.log('Modal opened');
-    });
+        // Close Modal when close button is clicked
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            authModal.classList.remove('active');
+            console.log('Close button clicked - Modal closed');
+        });
 
-    // Close Modal
-    closeBtn.addEventListener('click', function() {
-      authModal.classList.remove('active');
-      console.log('Modal closed');
-    });
+        // Close modal when clicking outside the modal box
+        authModal.addEventListener('click', function(event) {
+            if (event.target === authModal) {
+                authModal.classList.remove('active');
+                console.log('Clicked outside - Modal closed');
+            }
+        });
 
-    // Close modal when clicking outside
-    authModal.addEventListener('click', function(event) {
-      if(event.target === authModal) {
-        authModal.classList.remove('active');
-      }
-    });
+        // Login Button functionality
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const method = paymentMethod.value;
 
-    // Login Button
-    loginBtn.addEventListener('click', function() {
-      const email = emailInput.value;
-      const password = passwordInput.value;
-      
-      if(!email || !password) {
-        alert('Please enter email and password');
-        return;
-      }
-      
-      alert('Login attempted with: ' + email + '\nPassword length: ' + password.length);
-      console.log('Login clicked with email:', email);
-    });
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
 
-    // Signup Button
-    signupBtn.addEventListener('click', function() {
-      const email = emailInput.value;
-      const password = passwordInput.value;
-      
-      if(!email || !password) {
-        alert('Please enter email and password');
-        return;
-      }
-      
-      if(password.length < 6) {
-        alert('Password must be at least 6 characters');
-        return;
-      }
-      
-      alert('Signup attempted with: ' + email + '\nPassword length: ' + password.length);
-      console.log('Signup clicked with email:', email);
-    });
-  </script>
+            if (!method) {
+                alert('Please select a payment method');
+                return;
+            }
+
+            alert('Login successful!\nEmail: ' + email + '\nPayment Method: ' + method);
+            console.log('Login with:', { email, password: password.length + ' chars', method });
+            
+            // Clear form
+            emailInput.value = '';
+            passwordInput.value = '';
+            paymentMethod.value = '';
+            authModal.classList.remove('active');
+        });
+
+        // Signup Button functionality
+        signupBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            const method = paymentMethod.value;
+
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+
+            if (!method) {
+                alert('Please select a payment method');
+                return;
+            }
+
+            alert('Signup successful!\nEmail: ' + email + '\nPayment Method: ' + method);
+            console.log('Signup with:', { email, password: password.length + ' chars', method });
+            
+            // Clear form
+            emailInput.value = '';
+            passwordInput.value = '';
+            paymentMethod.value = '';
+            authModal.classList.remove('active');
+        });
+    </script>
 </body>
 </html>
