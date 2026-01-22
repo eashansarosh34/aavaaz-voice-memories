@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { user, recordingContent } = req.body;
+    const { user, userInput, voiceId } = req.body;
 
     if (!user) {
       return res.status(400).json({ error: 'User ID is required' });
@@ -17,8 +17,13 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API keys not configured' });
     }
 
-    // Generate story using Grok API
-    const grokPrompt = `Based on this voice memory: "${recordingContent || 'A cherished voice memory'}", create a heartwarming story about a person who treasured the voice of their loved ones. The story should be about 150-200 words and help understand how preserving voice memories helps cherish moments. Keep it touching and meaningful.`;
+    // Generate emotionally intelligent response using Grok AI
+    const grokPrompt = `You are an emotionally intelligent companion speaking with someone about their voice memories and cherished moments. 
+    User said: "${userInput || 'Please respond with warmth and empathy'}"
+    
+    Respond with a heartfelt, concise response (2-3 sentences max) that acknowledges their feelings and helps them reflect on cherished moments. Be warm, personal, and emotionally aware.`;
+
+    console.log('Calling Grok API with prompt...', grokPrompt.substring(0, 100));
 
     const grokResponse = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
@@ -30,36 +35,43 @@ export default async function handler(req, res) {
         model: 'grok-beta',
         messages: [
           {
+            role: 'system',
+            content: 'You are a compassionate, emotionally aware companion for voice memory preservation. Respond warmly and concisely.'
+          },
+          {
             role: 'user',
             content: grokPrompt
           }
         ],
         temperature: 0.7,
-        max_tokens: 300
+        max_tokens: 150
       })
     });
 
     if (!grokResponse.ok) {
       const error = await grokResponse.text();
       console.error('Grok API error:', error);
-      return res.status(500).json({ error: 'Failed to generate story with Grok' });
+      return res.status(500).json({ error: 'Failed to generate response from Grok', details: error });
     }
 
     const grokData = await grokResponse.json();
-    const storyContent = grokData.choices?.[0]?.message?.content || 'Once upon a time, there was a person who treasured the voice of their loved ones...';
-    const title = 'Voice Memory Story';
+    const responseText = grokData.choices?.[0]?.message?.content || 'I hear you. Your voice memories are precious moments to cherish.';
+    console.log('Grok response:', responseText);
 
-    // Generate audio using ElevenLabs API
+    // Use provided voiceId or default to a professional voice
+    const selectedVoiceId = voiceId || '21m00Tcm4TlvDq8ikWAM'; // Default ElevenLabs voice
+
+    // Generate audio using ElevenLabs with the reference voice
     let audioUrl = null;
     try {
-      const elevenLabsResponse = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
+      const elevenLabsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'xi-api-key': elevenLabsKey
         },
         body: JSON.stringify({
-          text: storyContent.substring(0, 500),
+          text: responseText,
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75
@@ -71,8 +83,10 @@ export default async function handler(req, res) {
         const audioBuffer = await elevenLabsResponse.arrayBuffer();
         const audioBase64 = Buffer.from(audioBuffer).toString('base64');
         audioUrl = `data:audio/mpeg;base64,${audioBase64}`;
+        console.log('Audio generated successfully');
       } else {
-        console.error('ElevenLabs error:', elevenLabsResponse.status);
+        const errorText = await elevenLabsResponse.text();
+        console.error('ElevenLabs error:', elevenLabsResponse.status, errorText);
       }
     } catch (audioError) {
       console.error('Audio generation error:', audioError);
@@ -80,15 +94,15 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      title: title,
-      content: storyContent,
+      response: responseText,
       audio: audioUrl,
-      message: 'Story generated successfully!'
+      voiceUsed: selectedVoiceId,
+      message: 'Response generated with emotional intelligence!'
     });
   } catch (error) {
-    console.error('Error generating story:', error);
+    console.error('Error in handler:', error);
     return res.status(500).json({
-      error: 'Failed to generate story',
+      error: 'Failed to process request',
       details: error.message
     });
   }
