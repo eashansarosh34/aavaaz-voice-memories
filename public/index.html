@@ -13,12 +13,8 @@ body { font-family: 'Segoe UI', Arial; background: #1a1a1a; color: white; }
 .call-status { font-size: 18px; opacity: 0.9; }
 .call-timer { font-size: 24px; margin: 20px 0; font-weight: bold; font-family: 'Courier New'; }
 .call-info { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-.waveform { width: 300px; height: 60px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 20px 0; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.waveform { width: 300px; height: 60px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 20px 0; display: none; align-items: center; justify-content: center; gap: 4px; }
 .bar { width: 4px; height: 30px; background: white; border-radius: 2px; animation: wave 0.6s ease-in-out infinite; }
-.bar:nth-child(2) { animation-delay: 0.1s; }
-.bar:nth-child(3) { animation-delay: 0.2s; }
-.bar:nth-child(4) { animation-delay: 0.3s; }
-.bar:nth-child(5) { animation-delay: 0.4s; }
 @keyframes wave { 0%, 100% { height: 20px; } 50% { height: 50px; } }
 .conversation-box { background: rgba(0,0,0,0.4); padding: 30px; border-radius: 15px; width: 90%; max-width: 600px; margin-bottom: 30px; max-height: 300px; overflow-y: auto; }
 .message { margin-bottom: 15px; padding: 12px 15px; border-radius: 10px; word-wrap: break-word; }
@@ -40,7 +36,6 @@ body { font-family: 'Segoe UI', Arial; background: #1a1a1a; color: white; }
 </style>
 </head>
 <body>
-
 <div class="call-container">
   <!-- Setup Screen -->
   <div id="setupScreen" class="setup-screen">
@@ -59,12 +54,10 @@ body { font-family: 'Segoe UI', Arial; background: #1a1a1a; color: white; }
       <h1 id="callerName">Speaking with Grok</h1>
       <div class="call-status" id="callStatus">Call Active</div>
     </div>
-    
     <div class="call-info">
       <div class="call-timer" id="callTimer">00:00</div>
       <div style="font-size: 14px; opacity: 0.8;">Press and hold to speak, release to listen</div>
     </div>
-
     <!-- Waveform Animation -->
     <div class="waveform" id="waveform" style="display: none;">
       <div class="bar"></div>
@@ -73,12 +66,8 @@ body { font-family: 'Segoe UI', Arial; background: #1a1a1a; color: white; }
       <div class="bar"></div>
       <div class="bar"></div>
     </div>
-    
     <!-- Conversation History -->
-    <div class="conversation-box" id="conversationBox">
-      <div style="text-align: center; color: rgba(255,255,255,0.5);">Conversation will appear here...</div>
-    </div>
-
+    <div class="conversation-box" id="conversationBox" style="text-align: center; color: rgba(255,255,255,0.5);">Conversation will appear here...</div>
     <!-- Controls -->
     <div class="controls">
       <div class="status-indicator" id="statusIndicator"></div>
@@ -95,6 +84,11 @@ let callActive = false;
 let callStartTime = 0;
 let recordingInProgress = false;
 const conversationHistory = [];
+let userId = localStorage.getItem('aavaazUserId') || 'user_' + Date.now();
+if (!localStorage.getItem('aavaazUserId')) {
+  localStorage.setItem('aavaazUserId', userId);
+}
+const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL'; // ElevenLabs default voice
 
 async function startCall() {
   const context = document.getElementById('storyContext').value;
@@ -103,7 +97,6 @@ async function startCall() {
     return;
   }
   
-  // Request microphone access
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
@@ -122,23 +115,17 @@ async function startCall() {
     mediaRecorder.onstop = async () => {
       document.getElementById('waveform').style.display = 'none';
       document.getElementById('statusIndicator').classList.remove('recording');
-      document.getElementById('callStatus').textContent = 'Call Active';
+      document.getElementById('callStatus').textContent = 'Processing...';
       
-      // Send audio to backend API
       const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
       await sendAudioToGrok(audioBlob, context);
     };
     
-    // Start call
     callActive = true;
     callStartTime = Date.now();
     document.getElementById('setupScreen').classList.add('hidden');
     document.getElementById('callScreen').classList.remove('hidden');
-    
-    // Start timer
     startCallTimer();
-    
-    // Add initial message
     addMessage('System', 'Call started. Press and hold the microphone to speak.', 'grok');
   } catch (err) {
     alert('Microphone access denied: ' + err.message);
@@ -162,41 +149,50 @@ function stopRecording() {
 
 async function sendAudioToGrok(audioBlob, context) {
   try {
-    const formData = new FormData();
-    formData.append('audio', audioBlob);
-    formData.append('context', context);
-    formData.append('conversation', JSON.stringify(conversationHistory));
-    
-    // Add user message
-    addMessage('You', '[Voice message sent]', 'user');
-    document.getElementById('callStatus').textContent = 'Grok is thinking...';
-    
-    // Call backend API
-    const response = await fetch('/api/conversation-loop', {
-      method: 'POST',
-      body: formData
-    });
-    
-    if (!response.ok) {
-      throw new Error('API error: ' + response.status);
-    }
-    
-    const data = await response.json();
-    
-    if (data.response) {
-      addMessage('Grok', data.response, 'grok');
-      conversationHistory.push({ user: '[Voice]', grok: data.response });
+    // Convert blob to base64
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const audioBase64 = reader.result.split(',')[1];
       
-      // Play Grok's response as audio (if available)
-      if (data.audio) {
-        playAudio(data.audio);
+      const requestBody = JSON.stringify({
+        userId: userId,
+        audioBase64: audioBase64,
+        voiceId: DEFAULT_VOICE_ID,
+        context: context,
+        conversation: conversationHistory
+      });
+      
+      addMessage('You', '[Voice message sent]', 'user');
+      document.getElementById('callStatus').textContent = 'Grok is thinking...';
+      
+      const response = await fetch('/api/conversation-loop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: requestBody
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API error: ${response.status} - ${errorText}`);
       }
-    }
-    
-    document.getElementById('callStatus').textContent = 'Call Active';
+      
+      const data = await response.json();
+      
+      if (data.grokResponse) {
+        addMessage('Grok', data.grokResponse, 'grok');
+        conversationHistory.push({ user: '[Voice]', grok: data.grokResponse });
+        
+        if (data.audioBase64) {
+          playAudio(data.audioBase64);
+        }
+      }
+      
+      document.getElementById('callStatus').textContent = 'Your turn - Press and hold to speak';
+    };
+    reader.readAsDataURL(audioBlob);
   } catch (err) {
     addMessage('System', 'Error: ' + err.message, 'grok');
-    document.getElementById('callStatus').textContent = 'Call Active';
+    document.getElementById('callStatus').textContent = 'Error - Try again';
   }
 }
 
@@ -221,9 +217,8 @@ function startCallTimer() {
   }, 1000);
 }
 
-function playAudio(audioData) {
-  // Decode and play audio response from Grok
-  const audio = new Audio('data:audio/wav;base64,' + audioData);
+function playAudio(audioBase64) {
+  const audio = new Audio('data:audio/mpeg;base64,' + audioBase64);
   audio.play();
 }
 
@@ -238,24 +233,6 @@ function endCall() {
   conversationHistory.length = 0;
   document.getElementById('conversationBox').innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5);">Conversation will appear here...</div>';
 }
-  
-// Event listeners for hold-to-speak button
-const recordBtn = document.getElementById('recordBtn');
-if (recordBtn) {
-  recordBtn.addEventListener('mousedown', startRecording);
-  recordBtn.addEventListener('mouseup', stopRecording);
-  recordBtn.addEventListener('mouseleave', stopRecording);
-  recordBtn.addEventListener('touchstart', startRecording);
-  recordBtn.addEventListener('touchend', stopRecording);
-}
-  
-// After Grok response, automatically prompt for next input
-setTimeout(() => {
-  if (callActive) {
-    document.getElementById('callStatus').textContent = 'Your turn - Press and hold to speak';
-  }
-}, 500);
 </script>
-
 </body>
 </html>
